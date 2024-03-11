@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCXL_EC_SYSTEM.a CMakeFiles/CXL_EC_SYSTEM.dir/cxlEC.cpp.o
+/usr/bin/ranlib libCXL_EC_SYSTEM.a

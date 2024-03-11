@@ -1,0 +1,3 @@
+file(REMOVE_RECURSE
+  "libCXL_EC_SYSTEM.a"
+)

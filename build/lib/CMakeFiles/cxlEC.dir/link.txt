@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcxlEC.a CMakeFiles/cxlEC.dir/cxlEC.cpp.o CMakeFiles/cxlEC.dir/switch.cpp.o
+/usr/bin/ranlib libcxlEC.a

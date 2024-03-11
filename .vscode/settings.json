@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "limits": "cpp",
+        "type_traits": "cpp",
+        "list": "cpp",
+        "cstdint": "cpp"
+    }
+}
