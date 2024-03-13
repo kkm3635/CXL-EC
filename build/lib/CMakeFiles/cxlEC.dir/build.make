@@ -97,19 +97,35 @@ lib/CMakeFiles/cxlEC.dir/switch.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cxlEC.dir/switch.cpp.s"
 	cd /home/youngmin/datalab/mySimul/build/lib && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/youngmin/datalab/mySimul/lib/switch.cpp -o CMakeFiles/cxlEC.dir/switch.cpp.s
 
+lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o: lib/CMakeFiles/cxlEC.dir/flags.make
+lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o: ../lib/ConsistentHashing.cpp
+lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o: lib/CMakeFiles/cxlEC.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/youngmin/datalab/mySimul/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o"
+	cd /home/youngmin/datalab/mySimul/build/lib && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o -MF CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o.d -o CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o -c /home/youngmin/datalab/mySimul/lib/ConsistentHashing.cpp
+
+lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.i"
+	cd /home/youngmin/datalab/mySimul/build/lib && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/youngmin/datalab/mySimul/lib/ConsistentHashing.cpp > CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.i
+
+lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.s"
+	cd /home/youngmin/datalab/mySimul/build/lib && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/youngmin/datalab/mySimul/lib/ConsistentHashing.cpp -o CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.s
+
 # Object files for target cxlEC
 cxlEC_OBJECTS = \
 "CMakeFiles/cxlEC.dir/cxlEC.cpp.o" \
-"CMakeFiles/cxlEC.dir/switch.cpp.o"
+"CMakeFiles/cxlEC.dir/switch.cpp.o" \
+"CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o"
 
 # External object files for target cxlEC
 cxlEC_EXTERNAL_OBJECTS =
 
 lib/libcxlEC.a: lib/CMakeFiles/cxlEC.dir/cxlEC.cpp.o
 lib/libcxlEC.a: lib/CMakeFiles/cxlEC.dir/switch.cpp.o
+lib/libcxlEC.a: lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o
 lib/libcxlEC.a: lib/CMakeFiles/cxlEC.dir/build.make
 lib/libcxlEC.a: lib/CMakeFiles/cxlEC.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/youngmin/datalab/mySimul/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libcxlEC.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/youngmin/datalab/mySimul/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libcxlEC.a"
 	cd /home/youngmin/datalab/mySimul/build/lib && $(CMAKE_COMMAND) -P CMakeFiles/cxlEC.dir/cmake_clean_target.cmake
 	cd /home/youngmin/datalab/mySimul/build/lib && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cxlEC.dir/link.txt --verbose=$(VERBOSE)
 

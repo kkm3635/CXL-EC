@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o"
+  "CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o.d"
   "CMakeFiles/cxlEC.dir/cxlEC.cpp.o"
   "CMakeFiles/cxlEC.dir/cxlEC.cpp.o.d"
   "CMakeFiles/cxlEC.dir/switch.cpp.o"

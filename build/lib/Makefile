@@ -130,6 +130,30 @@ cxlEC/fast:
 	cd /home/youngmin/datalab/mySimul/build && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/cxlEC.dir/build.make lib/CMakeFiles/cxlEC.dir/build
 .PHONY : cxlEC/fast
 
+ConsistentHashing.o: ConsistentHashing.cpp.o
+.PHONY : ConsistentHashing.o
+
+# target to build an object file
+ConsistentHashing.cpp.o:
+	cd /home/youngmin/datalab/mySimul/build && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/cxlEC.dir/build.make lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o
+.PHONY : ConsistentHashing.cpp.o
+
+ConsistentHashing.i: ConsistentHashing.cpp.i
+.PHONY : ConsistentHashing.i
+
+# target to preprocess a source file
+ConsistentHashing.cpp.i:
+	cd /home/youngmin/datalab/mySimul/build && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/cxlEC.dir/build.make lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.i
+.PHONY : ConsistentHashing.cpp.i
+
+ConsistentHashing.s: ConsistentHashing.cpp.s
+.PHONY : ConsistentHashing.s
+
+# target to generate assembly for a file
+ConsistentHashing.cpp.s:
+	cd /home/youngmin/datalab/mySimul/build && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/cxlEC.dir/build.make lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.s
+.PHONY : ConsistentHashing.cpp.s
+
 cxlEC.o: cxlEC.cpp.o
 .PHONY : cxlEC.o
 
@@ -187,6 +211,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... cxlEC"
+	@echo "... ConsistentHashing.o"
+	@echo "... ConsistentHashing.i"
+	@echo "... ConsistentHashing.s"
 	@echo "... cxlEC.o"
 	@echo "... cxlEC.i"
 	@echo "... cxlEC.s"

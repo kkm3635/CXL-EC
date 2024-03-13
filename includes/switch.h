@@ -3,9 +3,7 @@
 
 #include "ConsistentHashing.h"
 
-class PAGE;
-
-class SWITCH{
+class CXL_SWITCH{
     private:
         //char* inBuffer;
         int* hash_result;
@@ -13,14 +11,16 @@ class SWITCH{
         ConsistentHashRing switchRing;
 
     public:
-        SWITCH(){
+        CXL_SWITCH(){
             //inBuffer = new char[4096*5];
-            hash_result = new int[CGsize];
+            hash_result = new int[CGSIZE];
             switchRing = ConsistentHashRing();
         }
-        int* TAKE_PAGES(std::vector<uint32_t> VPNs);
-        void ERASURE_CODING(PAGE** victims, int n);
-        void consistent_hashing();
+        int* ConsistentHashing(const std::vector<uint32_t>& VPNs);
+        void ADD_NODE(int node_num){
+            switchRing.add_node(node_num);
+        }
+        //void ERASURE_CODING(PAGE** victims, int n);
 }; 
 
 #endif
