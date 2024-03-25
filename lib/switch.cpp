@@ -7,6 +7,7 @@ int* CXL_SWITCH::ConsistentHashing(const std::vector<uint32_t>& VPNs) {
     
     for(auto it=VPNs.begin(); it!=VPNs.end(); ++it){
         groupID += *it;
+        groupID >> (*it)%4;
     }
     return switchRing.get_node(groupID);
 }

@@ -14,7 +14,7 @@ class CXL_SWITCH{
         CXL_SWITCH(){
             //inBuffer = new char[4096*5];
             hash_result = new int[CGSIZE];
-            switchRing = ConsistentHashRing();
+            switchRing = ConsistentHashRing(3);
         }
         int* ConsistentHashing(const std::vector<uint32_t>& VPNs);
         void ADD_NODE(int node_num){

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/youngmin/datalab/mySimul/../ezpwd-reed-solomon/c++ -I/home/youngmin/datalab/mySimul/includes
+CXX_INCLUDES = -I/home/youngmin/datalab/mySimul/includes
 
-CXX_FLAGS = -O2
+CXX_FLAGS = -O3
 

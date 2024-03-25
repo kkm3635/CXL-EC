@@ -70,4 +70,21 @@ public:
 
 		return assigned_devices;
 	}
+	int* get_node_random(const uint32_t& CGgroup_ID) {
+		if(ring.empty()) {
+			return 0;
+		}
+		for (int i = 0; i < CGSIZE+PARITY; ++i) {
+        assigned_devices[i] = rand() % (entire_node_num);
+        for (int j = 0; j < i; ++j) {
+            if (assigned_devices[i] == assigned_devices[j]) {
+                // 중복된 값이 발견되면 현재 인덱스 다시 생성
+                --i;
+                break;
+				}
+			}
+		}
+			
+		return assigned_devices;
+	}
 };

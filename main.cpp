@@ -7,7 +7,7 @@
 #define PAGESIZE 4096
 
 int main() {
-    CXL_EC_SYSTEM cxl_eco(1000000ULL, 16, 200000ULL, PAGESIZE);
+    CXL_EC_SYSTEM cxl_eco(1048576ULL, 16, 262144ULL, PAGESIZE);
 
     FILE *file = fopen("/home/youngmin/datalab/workload/wa-128_128-fc10-fl100.vout", "r");
     if (file == NULL) {
@@ -25,12 +25,13 @@ int main() {
     double totalReadBytes = 0;
 
     uint32_t old_PF = 0;
+    uint32_t old_Evict = 0;
     bool start_FLAG = 0;
     char type;
     uint64_t addr;
     char line[100];
     while (fgets(line, sizeof(line), file)) {
-        if (line[0] == '[' && (line[1] == 'D' && (line[2] == 'R' || line[2] == 'W'))) {
+        if (line[0] == '[' && (line[1] == 'D' || (line[1] == 'R' || line[1] == 'W'))) {
             type = (line[2] == 'W') ? 'w' : 'r';
             sscanf(line + 4, "%lx", &addr);
 
@@ -48,11 +49,13 @@ int main() {
             percent += 10;
             printf("page fault는 과연?: 누적 %d번 발생, 이전과 %d번 차이남\n", cxl_eco.PF_PROMOTE_COUNTER, cxl_eco.PF_PROMOTE_COUNTER-old_PF);
             old_PF = cxl_eco.PF_PROMOTE_COUNTER;
-
+            printf("누적 Eviction %d, 이전과 %d번 차이남", cxl_eco.EVICT_COUNTER, cxl_eco.EVICT_COUNTER-old_Evict);
+            old_Evict = cxl_eco.EVICT_COUNTER;
             printf("====Load balancing====\n");
             cxl_eco.PrintfreeCXL();
         }
     }
+    cxl_eco.PrintPageTable();
     fclose(file);
 
     return 0;

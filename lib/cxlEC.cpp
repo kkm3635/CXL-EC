@@ -9,6 +9,9 @@ CXL_EC_SYSTEM::CXL_EC_SYSTEM(uint64_t Local_size, uint32_t CXL_mem_num, uint64_t
     _CXL_mem_num = CXL_mem_num;
     _CXL_mem_size = CXL_mem_size;
     _Local_Range = Local_size/pageSize;
+    _Local_Page_num = _Local_size/_pageSize;
+    _CXL_Page_num = _CXL_mem_size/_pageSize;
+    _PTE_size = 107374182400/4096;
 
     //LOCAL_DRAM = new PAGE[CXL_mem_size/pageSize];
     for(uint64_t i = 0; i < _Local_size/pageSize; ++i){
@@ -26,11 +29,12 @@ CXL_EC_SYSTEM::CXL_EC_SYSTEM(uint64_t Local_size, uint32_t CXL_mem_num, uint64_t
     }
     printf("CXL DRAM PAGE INDIVIDUAL %ld\n", CXL_DEVS_free[0].size());
     printf("TOTAL CXL DRAM PAGE NUM: %ld\n", CXL_DEVS_free[0].size()*CXL_mem_num);
-    int PTEsize = 107374182400/4096;
-    printf("PTEsize %d\n", PTEsize);
-    pageTable = new PTE[PTEsize];
+    // int PTEsize = 107374182400/4096;
+    printf("PTEsize %d\n", _PTE_size);
+    pageTable = new PTE[_PTE_size];
     switch1.ADD_NODE(CXL_mem_num);
     PF_PROMOTE_COUNTER=0;
+    EVICT_COUNTER=0;
 }
 
 CXL_EC_SYSTEM::~CXL_EC_SYSTEM(){
@@ -73,13 +77,12 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
     else {
         //////////////////////first assign implementation
         if(LOCAL_DRAM_free.empty()){
+            EVICT_COUNTER++;
             EVICT_COLD();
         }
         PFN = LOCAL_DRAM_free.front();
         LOCAL_DRAM_free.pop();
-        //printf("VPN: %x가 PFN: %d를 가져갑니다\n", VPN, PFN);
         if(VPNtoPFN.find(VPN) != VPNtoPFN.end()){
-            //printf("이미 가져갔는뎁쇼?\n\n");
         }
         else {
             VPNtoPFN.insert({VPN, PFN});
@@ -102,12 +105,10 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
 void CXL_EC_SYSTEM::STAMP(uint32_t VPN){
     for(auto it = LRUlist.begin(); it != LRUlist.end(); ++it){
         if(*it == VPN){
-            //printf("STAMP:\t이 VPN %x가 LRUlist에서 빠졌다가\n", *it);
             it = LRUlist.erase(it);
             break;
         }
     }
-    //printf("STAMP:\t이 VPN %x가 LRUlist에 들어갑니다\n", VPN);
     LRUlist.push_back(VPN);
 }  
 
@@ -133,7 +134,8 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
         uint32_t myPage = LOCAL_DRAM_free.front();
         LOCAL_DRAM_free.pop();
         uint32_t oldPage = pageTable[ECset[i]].getPFN();
-        uint32_t relDev = (oldPage-_Local_size/_pageSize)/(_CXL_mem_size/_pageSize);
+        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num);
+
         CXL_DEVS_free[relDev].push(oldPage);
 
         pageTable[ECset[i]].setPFN(myPage);
@@ -141,6 +143,14 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
         //delete mapping
         CGmap.erase(ECset[i]);
     }
+    std::vector<uint32_t> Pset;
+    Pset = Pmap[ECset[0]];
+    for(int i = 0; i < PARITY; ++i){
+        uint32_t oldPage = Pset[i];
+        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num);
+        CXL_DEVS_free[relDev].push(oldPage);
+    }
+    Pmap.erase(ECset[0]);
     
 }
 
@@ -160,6 +170,7 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
     for(int i = 0; i < CGSIZE; ++i){
         uint32_t candVPN = *(LRUlist.begin());
         victim_VPNs.push_back(candVPN);
+        pageTable[candVPN].evict_count++;
         LRUlist.pop_front(); //return cold VPN
         uint32_t candPFN = pageTable[candVPN].getPFN();
         victims.push_back(&LOCAL_DRAM[candPFN]);
@@ -169,9 +180,13 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
 
     int* assigned_devices;
     assigned_devices = switch1.ConsistentHashing(victim_VPNs);
+    // for(int i = 0; i < CGSIZE+PARITY; ++i){
+    //     printf("%d, ", assigned_devices[i]);
+    // }
+    // printf("\n=============\n");
     //page table
     for(int i = 0; i < CGSIZE; ++i){
-        if(CXL_DEVS_free[assigned_devices[i]].empty()){
+        if(CXL_DEVS_free[assigned_devices[i]].size()<=0){
             printf("THERE'S NO AVAILABLE MEMORY IN CXL DEVICE %d\n", assigned_devices[i]);
             abort();
         }
@@ -179,6 +194,13 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
         CXL_DEVS_free[assigned_devices[i]].pop();
         pageTable[victim_VPNs[i]].setisCXL(1);
     }
+    std::vector<uint32_t> Ppage;
+    for(int i = 0; i < PARITY; ++i){
+        Ppage.push_back(CXL_DEVS_free[assigned_devices[i]].front());
+        CXL_DEVS_free[assigned_devices[i]].pop();
+    }
+    Pmap.insert({victim_VPNs[0], Ppage});
+
 
     //device에 실제로 적었다고 친다
 
