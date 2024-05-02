@@ -35,7 +35,7 @@ public:
 		// }
 		entire_node_num = node_num;
 		for(uint32_t i = 0; i < node_num; ++i){
-			ring[i] = i;
+			ring[UINT32_MAX/node_num * i] = i;
 			sorted_keys.insert(i);
 		}
 	}
@@ -55,7 +55,7 @@ public:
 		}
 
 		//int hash_value = get_hash(CGgroup_ID);
-		uint32_t hash_value = get_hash(CGgroup_ID)%entire_node_num;
+		uint32_t hash_value = get_hash(CGgroup_ID);
 		auto it = sorted_keys.lower_bound(hash_value);
 		//printf("시작점은 %d 입니다\n", *it);
 

@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/youngmin/datalab/mySimul/includes
 
-CXX_FLAGS = -Wall -O3
+CXX_FLAGS = -Wall -g
 
