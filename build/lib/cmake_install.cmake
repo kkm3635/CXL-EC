@@ -1,4 +1,4 @@
-# Install script for directory: /home/youngmin/datalab/mySimul/lib
+# Install script for directory: /home/kkm/CXL-EC/lib
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

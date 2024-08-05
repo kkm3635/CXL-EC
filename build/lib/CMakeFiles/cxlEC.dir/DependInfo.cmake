@@ -8,9 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/youngmin/datalab/mySimul/lib/ConsistentHashing.cpp" "lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o.d"
-  "/home/youngmin/datalab/mySimul/lib/cxlEC.cpp" "lib/CMakeFiles/cxlEC.dir/cxlEC.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/cxlEC.cpp.o.d"
-  "/home/youngmin/datalab/mySimul/lib/switch.cpp" "lib/CMakeFiles/cxlEC.dir/switch.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/switch.cpp.o.d"
+  "/home/kkm/CXL-EC/lib/ConsistentHashing.cpp" "lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/ConsistentHashing.cpp.o.d"
+  "/home/kkm/CXL-EC/lib/cxlEC.cpp" "lib/CMakeFiles/cxlEC.dir/cxlEC.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/cxlEC.cpp.o.d"
+  "/home/kkm/CXL-EC/lib/switch.cpp" "lib/CMakeFiles/cxlEC.dir/switch.cpp.o" "gcc" "lib/CMakeFiles/cxlEC.dir/switch.cpp.o.d"
   )
 
 # Targets to which this target links.

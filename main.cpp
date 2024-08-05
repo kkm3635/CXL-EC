@@ -9,7 +9,7 @@
 int main() {
     CXL_EC_SYSTEM cxl_eco(1048576ULL, 16, 262144ULL, PAGESIZE);
 
-    FILE *file = fopen("/home/youngmin/datalab/workload/wa-128_128-fc10-fl100.vout", "r");
+    FILE *file = fopen("/home/kkm/vlog.vout", "r");
     if (file == NULL) {
         printf("파일을 열 수 없습니다.\n");
         return 1;
@@ -49,7 +49,7 @@ int main() {
             percent += 10;
             printf("page fault는 과연?: 누적 %d번 발생, 이전과 %d번 차이남\n", cxl_eco.PF_PROMOTE_COUNTER, cxl_eco.PF_PROMOTE_COUNTER-old_PF);
             old_PF = cxl_eco.PF_PROMOTE_COUNTER;
-            printf("누적 Eviction %d, 이전과 %d번 차이남", cxl_eco.EVICT_COUNTER, cxl_eco.EVICT_COUNTER-old_Evict);
+            printf("누적 Eviction %d, 이전과 %d번 차이남\n", cxl_eco.EVICT_COUNTER, cxl_eco.EVICT_COUNTER-old_Evict);
             old_Evict = cxl_eco.EVICT_COUNTER;
             printf("====Load balancing====\n");
             cxl_eco.PrintfreeCXL();

@@ -1,4 +1,4 @@
-CMakeFiles/main.dir/main.cpp.o: /home/youngmin/datalab/mySimul/main.cpp \
+CMakeFiles/main.dir/main.cpp.o: /home/kkm/CXL-EC/main.cpp \
  /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -27,8 +27,7 @@ CMakeFiles/main.dir/main.cpp.o: /home/youngmin/datalab/mySimul/main.cpp \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
- /home/youngmin/datalab/mySimul/includes/cxlEC.h \
- /usr/include/c++/11/cstdlib \
+ /home/kkm/CXL-EC/includes/cxlEC.h /usr/include/c++/11/cstdlib \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/cpu_defines.h \
@@ -107,9 +106,8 @@ CMakeFiles/main.dir/main.cpp.o: /home/youngmin/datalab/mySimul/main.cpp \
  /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/queue \
  /usr/include/c++/11/deque /usr/include/c++/11/bits/stl_deque.h \
  /usr/include/c++/11/bits/deque.tcc /usr/include/c++/11/bits/stl_heap.h \
- /usr/include/c++/11/bits/stl_queue.h \
- /home/youngmin/datalab/mySimul/includes/switch.h \
- /home/youngmin/datalab/mySimul/includes/ConsistentHashing.h \
+ /usr/include/c++/11/bits/stl_queue.h /home/kkm/CXL-EC/includes/switch.h \
+ /home/kkm/CXL-EC/includes/ConsistentHashing.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/stdc++.h \
  /usr/include/c++/11/cassert /usr/include/assert.h \
  /usr/include/c++/11/cctype /usr/include/ctype.h \
