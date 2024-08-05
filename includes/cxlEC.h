@@ -32,8 +32,7 @@ class PTE{
     bool isCXL;
     bool valid;
     public:
-    PTE(){
-        //printf("set 0 0 0\n");
+    PTE(){  // PTE class 생성자
         PFN = 0;
         isCXL = 0;
         valid = 0;
@@ -140,7 +139,6 @@ class CXL_EC_SYSTEM{
                 }
             }
         }
-
 
         std::set<uint32_t> VPNset; //debug
         std::map<uint32_t, uint32_t> VPNtoPFN; //debug

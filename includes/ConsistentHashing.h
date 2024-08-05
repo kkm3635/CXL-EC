@@ -70,6 +70,7 @@ public:
 
 		return assigned_devices;
 	}
+	
 	int* get_node_random(const uint32_t& CGgroup_ID) {
 		if(ring.empty()) {
 			return 0;

@@ -14,24 +14,24 @@ CXL_EC_SYSTEM::CXL_EC_SYSTEM(uint64_t Local_size, uint32_t CXL_mem_num, uint64_t
     _PTE_size = 107374182400/4096;
 
     //LOCAL_DRAM = new PAGE[CXL_mem_size/pageSize];
-    for(uint64_t i = 0; i < _Local_size/pageSize; ++i){
+    for(uint64_t i = 0; i < _Local_size/pageSize; ++i){  // queue에 local dram free page를 넣음
         LOCAL_DRAM_free.push(i);
     }
     printf("LOCAL DRAM # of PAGES %ld\n", LOCAL_DRAM_free.size());
-
-    CXL_DEVS_free = new std::queue<uint32_t>[CXL_mem_num];
+ 
+    CXL_DEVS_free = new std::queue<uint32_t>[CXL_mem_num];  // cxl device마다 free page 담는 queue 객체 생성
     //CXL_DEVS = new PAGE*[CXL_mem_num];
-    for(uint64_t i = 0; i < CXL_mem_num; ++i){
+    for(uint64_t i = 0; i < CXL_mem_num; ++i){ // 각 cxl dram마다 queue에 free page 넣음
         //CXL_DEVS[i] = new PAGE[CXL_mem_size/pageSize];
         for(uint64_t j = 0; j < _CXL_mem_size/pageSize; ++j){
-            CXL_DEVS_free[i].push(_Local_size/pageSize + i*CXL_mem_size/pageSize + j);
+            CXL_DEVS_free[i].push(_Local_size/pageSize + i*CXL_mem_size/pageSize + j); // page index를 안 겹치게 이어서 할당하고 있음
         }
     }
     printf("CXL DRAM PAGE INDIVIDUAL %ld\n", CXL_DEVS_free[0].size());
     printf("TOTAL CXL DRAM PAGE NUM: %ld\n", CXL_DEVS_free[0].size()*CXL_mem_num);
     // int PTEsize = 107374182400/4096;
     printf("PTEsize %d\n", _PTE_size);
-    pageTable = new PTE[_PTE_size];
+    pageTable = new PTE[_PTE_size];  // page table 객체 생성
     switch1.ADD_NODE(CXL_mem_num);
     PF_PROMOTE_COUNTER=0;
     EVICT_COUNTER=0;
@@ -44,12 +44,13 @@ CXL_EC_SYSTEM::~CXL_EC_SYSTEM(){
 void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
     //address translation
     uint32_t pageSize = _pageSize;
-    uint32_t PFmask = ~(pageSize-1);
-    uint32_t VPN = (addr & PFmask)/pageSize;
+    uint32_t PFmask = ~(pageSize-1); // 주소에서 페이지 프레임 번호 부분을 위한 마스크 생성
+    uint32_t VPN = (addr & PFmask)/pageSize; // 주소를 마스킹하고 페이지 크기로 나누어 가상 페이지 번호를 계산
     VPNset.insert(VPN);
-    uint32_t OFFmask = (1ULL << 12) - 1;
-    uint32_t offset = addr & OFFmask;
+    uint32_t OFFmask = (1ULL << 12) - 1; // 페이지 내 오프셋에 대한 마스크 생성 (12비트 오프셋 가정)
+    uint32_t offset = addr & OFFmask; // 주소에서 페이지 내 오프셋을 추출함
     uint32_t PFN = -1;
+
     if(pageTable[VPN].getvalid()){
         PFN = pageTable[VPN].getPFN();
         if(type=='r'){
@@ -60,7 +61,7 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
         }
         //isCXL check
         else if(type=='w'){
-            if(pageTable[VPN].getisCXL()){
+            if(pageTable[VPN].getisCXL()){  // cxl에 있는 페이지 write하는 경우
                 //page fault
                 PF_PROMOTE(VPN);
                 //retrieve pageTable again to get PFN of LocalDRAM
@@ -68,7 +69,7 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
                 STAMP(VPN);
                 STORE(PFN, offset);
             }
-            else{
+            else{  // local dram에 write하는 경우
                 STAMP(VPN);
                 STORE(PFN, offset);
             }
@@ -82,11 +83,13 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
         }
         PFN = LOCAL_DRAM_free.front();
         LOCAL_DRAM_free.pop();
+
         if(VPNtoPFN.find(VPN) != VPNtoPFN.end()){
         }
         else {
             VPNtoPFN.insert({VPN, PFN});
         }
+        
         //printf("POP!!! %d\n", PFN);
         pageTable[VPN].setPFN(PFN);
         pageTable[VPN].setvalid(1);
@@ -102,7 +105,7 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
 
 }
 
-void CXL_EC_SYSTEM::STAMP(uint32_t VPN){
+void CXL_EC_SYSTEM::STAMP(uint32_t VPN){ // 해당 VPN을 LRU에서 갱신하는 역할
     for(auto it = LRUlist.begin(); it != LRUlist.end(); ++it){
         if(*it == VPN){
             it = LRUlist.erase(it);
@@ -123,7 +126,7 @@ void CXL_EC_SYSTEM::LOAD(uint32_t PFN, uint32_t offset) {
 void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
     PF_PROMOTE_COUNTER ++;
     std::vector<uint32_t> ECset;
-    ECset = GET_CGmap(VPN);
+    ECset = GET_CGmap(VPN);  // 해당 VPN과 관련된 coding group searching
 
     //여기에 구현 다시해야함 ECset으로 불러온거 CXL_DRAM에 reclaim을 안하고 있다
     for(int i = 0; i < CGSIZE; ++i) {
@@ -133,70 +136,74 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
         //get one free page
         uint32_t myPage = LOCAL_DRAM_free.front();
         LOCAL_DRAM_free.pop();
-        uint32_t oldPage = pageTable[ECset[i]].getPFN();
-        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num);
+        uint32_t oldPage = pageTable[ECset[i]].getPFN(); // CG의 VPN에 대한 PFN 가져옴
+        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num); // 해당 PFN이 몇 번째 cxl dram인지 계산
 
-        CXL_DEVS_free[relDev].push(oldPage);
+        CXL_DEVS_free[relDev].push(oldPage); // 해당 cxl dram에 PFN 큐에 추가
 
         pageTable[ECset[i]].setPFN(myPage);
         pageTable[ECset[i]].setisCXL(0);
         //delete mapping
         CGmap.erase(ECset[i]);
     }
+
     std::vector<uint32_t> Pset;
-    Pset = Pmap[ECset[0]];
+    Pset = Pmap[ECset[0]]; // CG에 대한 parity가 써져있는 PFN 저장
     for(int i = 0; i < PARITY; ++i){
         uint32_t oldPage = Pset[i];
-        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num);
-        CXL_DEVS_free[relDev].push(oldPage);
+        uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num); // parity가 써져있는 cxl dram이 어디인지
+        CXL_DEVS_free[relDev].push(oldPage); // 해당 cxl dram free queue에 빈 페이지 추가
     }
     Pmap.erase(ECset[0]);
     
 }
 
 std::vector<uint32_t> CXL_EC_SYSTEM::GET_CGmap(uint32_t VPN){
-    std::unordered_map<uint32_t, std::vector<uint32_t>>::iterator iter;
+    std::unordered_map<uint32_t, std::vector<uint32_t>>::iterator iter;  // iter는 CGmap에서 주어진 VPN을 찾는 이터레이터
     iter = CGmap.find(VPN);
-    if((iter->second).size() < 2){
-        iter = CGmap.find(iter->second[0]);
+    if((iter->second).size() < 2){  // 즉, 대장이 아니면 
+        iter = CGmap.find(iter->second[0]);  // "쫄따구 벡터의 첫 번째 요소 == 대장의 VPN" 으로 다시 찾음
     }
-    return (iter->second);
+    return (iter->second); // 해당 vpn과 관련된 모든 vpn을 반환
 }   
 
 void CXL_EC_SYSTEM::EVICT_COLD(){
-    std::vector<PAGE*> victims;
-    std::vector<uint32_t> victim_VPNs;
+    std::vector<PAGE*> victims; // cold page들의 포인터를 저장하는 벡터
+    std::vector<uint32_t> victim_VPNs; // cold page들의 vpn을 저장하는 벡터
 
-    for(int i = 0; i < CGSIZE; ++i){
+    for(int i = 0; i < CGSIZE; ++i){  // LRU 리스트의 처음부터 CGSIZE 만큼의 페이지를 선택하여 eviction 후보로 선정
         uint32_t candVPN = *(LRUlist.begin());
-        victim_VPNs.push_back(candVPN);
-        pageTable[candVPN].evict_count++;
-        LRUlist.pop_front(); //return cold VPN
-        uint32_t candPFN = pageTable[candVPN].getPFN();
-        victims.push_back(&LOCAL_DRAM[candPFN]);
+        victim_VPNs.push_back(candVPN); // eviction page의 vpn 저장
+        pageTable[candVPN].evict_count++; // eviction page의 evict_count 증가
+        LRUlist.pop_front(); // eviction page LRU list에서 제거
+        uint32_t candPFN = pageTable[candVPN].getPFN(); 
+        victims.push_back(&LOCAL_DRAM[candPFN]); // evgiction page의 포인터 저장
         LOCAL_DRAM_free.push(candPFN); //여기 미리 free한 page를 넣어뒀음. 시뮬레이션 상 허용
     }
+
     //encoding 했다고 친다
 
     int* assigned_devices;
-    assigned_devices = switch1.ConsistentHashing(victim_VPNs);
+    assigned_devices = switch1.ConsistentHashing(victim_VPNs);  // consistenthashing으로 cxl dram에 viction vpn 뿌림
     // for(int i = 0; i < CGSIZE+PARITY; ++i){
     //     printf("%d, ", assigned_devices[i]);
     // }
     // printf("\n=============\n");
     //page table
-    for(int i = 0; i < CGSIZE; ++i){
-        if(CXL_DEVS_free[assigned_devices[i]].size()<=0){
+    for(int i = 0; i < CGSIZE; ++i){ // page table update
+        if(CXL_DEVS_free[assigned_devices[i]].size()<=0){ // 할당된 cxl dram에 사용할 수 있는 메모리가 있는지 확인
             printf("THERE'S NO AVAILABLE MEMORY IN CXL DEVICE %d\n", assigned_devices[i]);
             abort();
         }
-        pageTable[victim_VPNs[i]].setPFN(CXL_DEVS_free[assigned_devices[i]].front());
-        CXL_DEVS_free[assigned_devices[i]].pop();
-        pageTable[victim_VPNs[i]].setisCXL(1);
+        pageTable[victim_VPNs[i]].setPFN(CXL_DEVS_free[assigned_devices[i]].front()); // VPN-to-PFN mapping
+        CXL_DEVS_free[assigned_devices[i]].pop(); // cxl free 
+        pageTable[victim_VPNs[i]].setisCXL(1); // 해당 페이지가 cxl에 있음을 표시
     }
+
+    // 현재 이 부분이 약간 가라로 구현되어 있음
     std::vector<uint32_t> Ppage;
     for(int i = 0; i < PARITY; ++i){
-        Ppage.push_back(CXL_DEVS_free[assigned_devices[i]].front());
+        Ppage.push_back(CXL_DEVS_free[assigned_devices[i]].front()); // 이렇게 구현하면 data랑 parity랑 같이 써지지 않나?
         CXL_DEVS_free[assigned_devices[i]].pop();
     }
     Pmap.insert({victim_VPNs[0], Ppage});
@@ -204,13 +211,13 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
 
     //device에 실제로 적었다고 친다
 
-    CGmap.insert({victim_VPNs[0], victim_VPNs});
+    CGmap.insert({victim_VPNs[0], victim_VPNs});  // 첫 VPN을 리더로하여 CGmap에 추가
     //printf("CGmap LEADER INFO UPDATE %d, {", victim_VPNs[0]);
     // for(int i = 0; i < CGSIZE; ++i){
     //     printf("%d ", CGmap[victim_VPNs[0]][i]);
     // }
     //printf("}\n");
-    for(int i = 1; i < CGSIZE; ++i){
+    for(int i = 1; i < CGSIZE; ++i){  // 나머지 VPN들도 CGmap에 리더를 가리키도록 추가
         CGmap.insert({victim_VPNs[i], std::vector<uint32_t>{victim_VPNs[0]}});
         //printf("CGmap INFO UPDATE %d, cont: %d, size: %d\n", victim_VPNs[i], CGmap[victim_VPNs[i]].front(), CGmap[victim_VPNs[i]].size());
     }
