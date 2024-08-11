@@ -7,7 +7,7 @@
 #define PAGESIZE 4096
 
 int main() {
-    CXL_EC_SYSTEM cxl_eco(1048576ULL, 16, 262144ULL, PAGESIZE);
+    CXL_EC_SYSTEM cxl_eco(4194304ULL, 16, 4194304ULL, PAGESIZE);
 
     FILE *file = fopen("/home/kkm/vlog.vout", "r");
     if (file == NULL) {
@@ -55,7 +55,7 @@ int main() {
             cxl_eco.PrintfreeCXL();
         }
     }
-    cxl_eco.PrintPageTable();
+    //cxl_eco.PrintPageTable();
     fclose(file);
 
     return 0;

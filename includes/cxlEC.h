@@ -124,6 +124,10 @@ class CXL_EC_SYSTEM{
             std::vector<double> sigma;
             printf("LOCAL DRAM available pages: %ld, percentage: %lf%%\n", LOCAL_DRAM_free.size(), (double)LOCAL_DRAM_free.size()/(_Local_Page_num)*100);
             for(int i = 0; i < _CXL_mem_num; ++i){
+                if(CXL_DEVS_free[i].size() < 0){
+                    printf("error!!\n");
+                }
+
                 printf("CXL DEV %d available pages: %ld, percentage: %lf%%\n", i, 
                 CXL_DEVS_free[i].size(), (double)CXL_DEVS_free[i].size()/(_CXL_mem_size/_pageSize)*100);
                 sigma.push_back((double)CXL_DEVS_free[i].size());

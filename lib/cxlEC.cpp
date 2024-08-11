@@ -51,32 +51,30 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
     uint32_t offset = addr & OFFmask; // 주소에서 페이지 내 오프셋을 추출함
     uint32_t PFN = -1;
 
-    if(pageTable[VPN].getvalid()){
+    if(pageTable[VPN].getvalid()){ // first access가 아닌 경우
         PFN = pageTable[VPN].getPFN();
         if(type=='r'){
-            if(!pageTable[VPN].getisCXL()){ //DRAM이면 stamp
-                //STAMP(VPN);
-            }
-            LOAD(PFN, offset);
+            if(!pageTable[VPN].getisCXL()){ // local dram load
+                STAMP(VPN);
+                LOAD(PFN, offset);
+            } // cxl dram load
+            LOAD(PFN, offset); // cxl dram load
         }
-        //isCXL check
-        else if(type=='w'){
-            if(pageTable[VPN].getisCXL()){  // cxl에 있는 페이지 write하는 경우
+        else{
+            if(pageTable[VPN].getisCXL()){  // cxl dram store
                 //page fault
                 PF_PROMOTE(VPN);
                 //retrieve pageTable again to get PFN of LocalDRAM
                 PFN = pageTable[VPN].getPFN();
-                STAMP(VPN);
                 STORE(PFN, offset);
             }
-            else{  // local dram에 write하는 경우
+            else{  // local dram store
                 STAMP(VPN);
                 STORE(PFN, offset);
             }
         }
     }
-    else {
-        //////////////////////first assign implementation
+    else { //first access인 경우
         if(LOCAL_DRAM_free.empty()){
             EVICT_COUNTER++;
             EVICT_COLD();
@@ -89,14 +87,13 @@ void CXL_EC_SYSTEM::MMU(uint32_t addr, char type){
         else {
             VPNtoPFN.insert({VPN, PFN});
         }
-        
+
         //printf("POP!!! %d\n", PFN);
         pageTable[VPN].setPFN(PFN);
         pageTable[VPN].setvalid(1);
         //printf("MMU first assign:\tVPN %x\n", VPN);
         LRUlist.push_back(VPN);
         //printf("push %x\n", LRUlist.back());
-        //STAMP(VPN);
         if(type == 'r')
             LOAD(PFN, offset);
         else
@@ -128,7 +125,6 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
     std::vector<uint32_t> ECset;
     ECset = GET_CGmap(VPN);  // 해당 VPN과 관련된 coding group searching
 
-    //여기에 구현 다시해야함 ECset으로 불러온거 CXL_DRAM에 reclaim을 안하고 있다
     for(int i = 0; i < CGSIZE; ++i) {
         if(LOCAL_DRAM_free.empty()){
             EVICT_COLD();
@@ -141,6 +137,7 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
 
         CXL_DEVS_free[relDev].push(oldPage); // 해당 cxl dram에 PFN 큐에 추가
 
+        LRUlist.push_back(ECset[i]);
         pageTable[ECset[i]].setPFN(myPage);
         pageTable[ECset[i]].setisCXL(0);
         //delete mapping
@@ -148,7 +145,9 @@ void CXL_EC_SYSTEM::PF_PROMOTE(uint32_t VPN){
     }
 
     std::vector<uint32_t> Pset;
-    Pset = Pmap[ECset[0]]; // CG에 대한 parity가 써져있는 PFN 저장
+    for(auto it : Pmap[ECset[0]]){
+        Pset.push_back(it);
+    }
     for(int i = 0; i < PARITY; ++i){
         uint32_t oldPage = Pset[i];
         uint32_t relDev = (oldPage-_Local_Page_num)/(_CXL_Page_num); // parity가 써져있는 cxl dram이 어디인지
@@ -164,6 +163,7 @@ std::vector<uint32_t> CXL_EC_SYSTEM::GET_CGmap(uint32_t VPN){
     if((iter->second).size() < 2){  // 즉, 대장이 아니면 
         iter = CGmap.find(iter->second[0]);  // "쫄따구 벡터의 첫 번째 요소 == 대장의 VPN" 으로 다시 찾음
     }
+    printf("hihihi\n");
     return (iter->second); // 해당 vpn과 관련된 모든 vpn을 반환
 }   
 
@@ -176,6 +176,7 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
         victim_VPNs.push_back(candVPN); // eviction page의 vpn 저장
         pageTable[candVPN].evict_count++; // eviction page의 evict_count 증가
         LRUlist.pop_front(); // eviction page LRU list에서 제거
+
         uint32_t candPFN = pageTable[candVPN].getPFN(); 
         victims.push_back(&LOCAL_DRAM[candPFN]); // evgiction page의 포인터 저장
         LOCAL_DRAM_free.push(candPFN); //여기 미리 free한 page를 넣어뒀음. 시뮬레이션 상 허용
@@ -184,39 +185,41 @@ void CXL_EC_SYSTEM::EVICT_COLD(){
     //encoding 했다고 친다
 
     int* assigned_devices;
-    assigned_devices = switch1.ConsistentHashing(victim_VPNs);  // consistenthashing으로 cxl dram에 viction vpn 뿌림
-    // for(int i = 0; i < CGSIZE+PARITY; ++i){
-    //     printf("%d, ", assigned_devices[i]);
-    // }
-    // printf("\n=============\n");
-    //page table
-    for(int i = 0; i < CGSIZE; ++i){ // page table update
+    assigned_devices = switch1.ConsistentHashing(victim_VPNs);  // consistenthashing으로 어느 device에 뿌릴 건 지 정해옴
+    //printf("%d\n",assigned_devices[0]);
+
+    for(int i = 0; i < CGSIZE; ++i){ // data 씀
         if(CXL_DEVS_free[assigned_devices[i]].size()<=0){ // 할당된 cxl dram에 사용할 수 있는 메모리가 있는지 확인
+            for(int i = 0; i < _CXL_mem_num; ++i){
+                printf("CXL DEV %d available pages: %ld, percentage: %lf%%\n", i, 
+                CXL_DEVS_free[i].size(), (double)CXL_DEVS_free[i].size()/(_CXL_mem_size/_pageSize)*100);
+            }
             printf("THERE'S NO AVAILABLE MEMORY IN CXL DEVICE %d\n", assigned_devices[i]);
             abort();
         }
         pageTable[victim_VPNs[i]].setPFN(CXL_DEVS_free[assigned_devices[i]].front()); // VPN-to-PFN mapping
         CXL_DEVS_free[assigned_devices[i]].pop(); // cxl free 
         pageTable[victim_VPNs[i]].setisCXL(1); // 해당 페이지가 cxl에 있음을 표시
+
     }
 
-    // 현재 이 부분이 약간 가라로 구현되어 있음
-    std::vector<uint32_t> Ppage;
-    for(int i = 0; i < PARITY; ++i){
-        Ppage.push_back(CXL_DEVS_free[assigned_devices[i]].front()); // 이렇게 구현하면 data랑 parity랑 같이 써지지 않나?
-        CXL_DEVS_free[assigned_devices[i]].pop();
+    std::vector<uint32_t> Ppage; // 어느 페이지가 parity인지 표현
+    for(int i = 0; i < PARITY; ++i){ // encoding했다 치고 parity 씀
+        if(CXL_DEVS_free[assigned_devices[i+4]].size()<=0){
+            for(int i = 0; i < _CXL_mem_num; ++i){
+                printf("CXL DEV %d available pages: %ld, percentage: %lf%%\n", i, 
+                CXL_DEVS_free[i].size(), (double)CXL_DEVS_free[i].size()/(_CXL_mem_size/_pageSize)*100);
+            }
+            printf("THERE'S NO AVAILABLE MEMORY IN CXL DEVICE %d\n", assigned_devices[i]);
+            abort();
+        }
+
+        Ppage.push_back(CXL_DEVS_free[assigned_devices[i+4]].front()); 
+        CXL_DEVS_free[assigned_devices[i+4]].pop();
     }
-    Pmap.insert({victim_VPNs[0], Ppage});
-
-
-    //device에 실제로 적었다고 친다
-
+    Pmap.insert({victim_VPNs[0], Ppage}); // 여기서 Ppage는 PFN
     CGmap.insert({victim_VPNs[0], victim_VPNs});  // 첫 VPN을 리더로하여 CGmap에 추가
-    //printf("CGmap LEADER INFO UPDATE %d, {", victim_VPNs[0]);
-    // for(int i = 0; i < CGSIZE; ++i){
-    //     printf("%d ", CGmap[victim_VPNs[0]][i]);
-    // }
-    //printf("}\n");
+    
     for(int i = 1; i < CGSIZE; ++i){  // 나머지 VPN들도 CGmap에 리더를 가리키도록 추가
         CGmap.insert({victim_VPNs[i], std::vector<uint32_t>{victim_VPNs[0]}});
         //printf("CGmap INFO UPDATE %d, cont: %d, size: %d\n", victim_VPNs[i], CGmap[victim_VPNs[i]].front(), CGmap[victim_VPNs[i]].size());
