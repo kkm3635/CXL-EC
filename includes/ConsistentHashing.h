@@ -52,15 +52,14 @@ public:
 		if (ring.empty()) {
 			return 0;
 		}
-		float hash_value = CGgroup_ID;
-		//printf("hash value: %f\n",hash_value);
 
-		if(hash_value > 0.937500){
+		float random_hash_value = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+		if(random_hash_value > 0.937500){
 			start_dev = 0;
 		}
 		else{
 			for(const auto& pair : ring){ // hash value로 가장 가까운 device 찾는거
-				if(pair.second >= hash_value){
+				if(pair.second >= random_hash_value){
 					start_dev = pair.first;
 					//std::cout << start_dev << std::endl;
 					break;
@@ -69,32 +68,15 @@ public:
 		}
 
 		for(int i = 0; i < CGSIZE+PARITY; ++i){
+			//printf("%d, ", assigned_devices[i]);
 			assigned_devices[i] = start_dev;
 			start_dev++;
 			if(start_dev == 16) start_dev =0;
 
-        	//printf("%d, ", assigned_devices[i]);
     	}
     	//printf("\n=============\n");
 
 		return assigned_devices;
 	}
 
-	int* get_node_random(const uint32_t& CGgroup_ID) {
-		if(ring.empty()) {
-			return 0;
-		}
-		for (int i = 0; i < CGSIZE+PARITY; ++i) {
-        	assigned_devices[i] = rand() % (entire_node_num);
-        	for (int j = 0; j < i; ++j) {
-            	if (assigned_devices[i] == assigned_devices[j]) {
-                // 중복된 값이 발견되면 현재 인덱스 다시 생성
-                	--i;
-                	break;
-				}
-			}
-		}
-			
-		return assigned_devices;
-	}
 };
