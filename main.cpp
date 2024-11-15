@@ -7,9 +7,9 @@
 #define PAGESIZE 4096
 
 int main() {
-    CXL_EC_SYSTEM cxl_eco(4194304ULL, 16, 4194304ULL, PAGESIZE);
+    CXL_EC_SYSTEM cxl_eco(274877906944ULL, 4, 25769803776ULL, 8589934592ULL, PAGESIZE);  // local 256GB, 4 cxl dev, cxl dev 24GB, parity 8GB
 
-    FILE *file = fopen("/home/kkm/vlog.vout", "r");
+    FILE *file = fopen("/home/kkm/trace", "r");
     if (file == NULL) {
         printf("파일을 열 수 없습니다.\n");
         return 1;
@@ -23,39 +23,73 @@ int main() {
 
     double percent = 0;
     double totalReadBytes = 0;
+    int load_count = 0;
+    int store_count = 0;
+    int migrate_count = 0;
 
-    uint32_t old_PF = 0;
-    uint32_t old_Evict = 0;
-    bool start_FLAG = 0;
-    char type;
-    uint64_t addr;
     char line[100];
     while (fgets(line, sizeof(line), file)) {
-        if (line[0] == '[' && (line[1] == 'D' || (line[1] == 'R' || line[1] == 'W'))) {
-            type = (line[2] == 'W') ? 'w' : 'r';
-            sscanf(line + 4, "%lx", &addr);
+        if(line[0] == 'W'){ // Store
+            char type = 'w';
+            char *hexAddStr = strtok(line +1, " ");
 
-            //parsing ends
-            //printf("c = %c, addr = %lx\n", type, addr);
-            cxl_eco.MMU(addr, type);
+            if(hexAddStr != NULL){
+                uint32_t addr = strtoull(hexAddStr, nullptr, 16);
+                if(addr > Local_End_Frame && addr < CXL_Start_Frame)
+                    continue; 
 
-            // 진행률 확인
+                cxl_eco.REQUEST(addr, type);
+            }
         }
+
+        else if(line[0] == 'R'){ // Load
+            char type = 'r';
+            char *hexAddStr = strtok(line +1, " ");
+
+            if(hexAddStr != NULL){
+                uint64_t addr = strtoull(hexAddStr, nullptr, 16);
+                if(addr > Local_End_Frame && addr < CXL_Start_Frame)
+                    continue; 
+
+                cxl_eco.REQUEST(addr, type);
+            }
+        }
+
+        else if(line[0] == 'M'){ // Migration
+            char type = 'm';
+            char *from = strtok(line+1, "");
+            char *to = strtok(nullptr, " ");
+
+            if(from != NULL && to != NULL){
+                uint64_t From = strtoull(from, nullptr, 16);
+                if(From > Local_End_Frame && From < CXL_Start_Frame)
+                    continue; 
+                
+                uint64_t To = strtoull(to, nullptr, 16);
+                if(To > Local_End_Frame && To < CXL_Start_Frame)
+                    continue; 
+
+                cxl_eco.MIGRATE(From, To, type);
+            }
+        }
+
+        else if(line[0] == 'F'){ // Recovery
+            char type = 'r';
+
+        }
+        
         totalReadBytes += strlen(line); // 수정: fgets로 읽은 데이터의 실제 크기를 계산
         double progress = totalReadBytes / fileSize * 100;
         if (progress >= percent) {
             printf("%lf%% 진행되었습니다. (읽은 바이트: %lf / 전체 크기: %lf)\n", percent, totalReadBytes, fileSize);
-            // percent를 10 증가시킴으로써 다음 10%를 검사할 준비를 합니다.
             percent += 10;
-            printf("page fault는 과연?: 누적 %d번 발생, 이전과 %d번 차이남\n", cxl_eco.PF_PROMOTE_COUNTER, cxl_eco.PF_PROMOTE_COUNTER-old_PF);
-            old_PF = cxl_eco.PF_PROMOTE_COUNTER;
-            printf("누적 Eviction %d, 이전과 %d번 차이남\n", cxl_eco.EVICT_COUNTER, cxl_eco.EVICT_COUNTER-old_Evict);
-            old_Evict = cxl_eco.EVICT_COUNTER;
-            printf("====Load balancing====\n");
-            cxl_eco.PrintfreeCXL();
+
+            printf("==================================\n");
         }
     }
-    //cxl_eco.PrintPageTable();
+    printf("Load: %d\n",load_count);
+    printf("Store: %d\n",store_count);
+    printf("Migrate: %d\n", migrate_count);
     fclose(file);
 
     return 0;

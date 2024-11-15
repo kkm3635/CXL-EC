@@ -1,6 +1,3 @@
 /home/kkm/CXL-EC/build/CMakeFiles/main.dir
 /home/kkm/CXL-EC/build/CMakeFiles/edit_cache.dir
 /home/kkm/CXL-EC/build/CMakeFiles/rebuild_cache.dir
-/home/kkm/CXL-EC/build/lib/CMakeFiles/cxlEC.dir
-/home/kkm/CXL-EC/build/lib/CMakeFiles/edit_cache.dir
-/home/kkm/CXL-EC/build/lib/CMakeFiles/rebuild_cache.dir

@@ -8,12 +8,12 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/kkm/CXL-EC/cxlEC.cpp" "CMakeFiles/main.dir/cxlEC.cpp.o" "gcc" "CMakeFiles/main.dir/cxlEC.cpp.o.d"
   "/home/kkm/CXL-EC/main.cpp" "CMakeFiles/main.dir/main.cpp.o" "gcc" "CMakeFiles/main.dir/main.cpp.o.d"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/kkm/CXL-EC/build/lib/CMakeFiles/cxlEC.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

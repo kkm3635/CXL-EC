@@ -129,18 +129,29 @@ main/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
 
-#=============================================================================
-# Target rules for targets named cxlEC
+cxlEC.o: cxlEC.cpp.o
+.PHONY : cxlEC.o
 
-# Build rule for target.
-cxlEC: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cxlEC
-.PHONY : cxlEC
+# target to build an object file
+cxlEC.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/cxlEC.cpp.o
+.PHONY : cxlEC.cpp.o
 
-# fast build rule for target.
-cxlEC/fast:
-	$(MAKE) $(MAKESILENT) -f lib/CMakeFiles/cxlEC.dir/build.make lib/CMakeFiles/cxlEC.dir/build
-.PHONY : cxlEC/fast
+cxlEC.i: cxlEC.cpp.i
+.PHONY : cxlEC.i
+
+# target to preprocess a source file
+cxlEC.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/cxlEC.cpp.i
+.PHONY : cxlEC.cpp.i
+
+cxlEC.s: cxlEC.cpp.s
+.PHONY : cxlEC.s
+
+# target to generate assembly for a file
+cxlEC.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/cxlEC.cpp.s
+.PHONY : cxlEC.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -174,8 +185,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... cxlEC"
 	@echo "... main"
+	@echo "... cxlEC.o"
+	@echo "... cxlEC.i"
+	@echo "... cxlEC.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
